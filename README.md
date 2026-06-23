@@ -1,2 +1,3 @@
 # Adaptive-Real-Time-Traffic-Control-System-with-Custom-Bare-Metal-Scheduler
-]
+
+A bare-metal preemptive task scheduler built entirely from scratch on the STM32F407, applied to a dual-intersection traffic light control system. Each intersection runs as an independent task managed by a priority-based scheduler using PendSV for context switching and SysTick for tick generation. A high-priority watchdog task monitors all intersection tasks for deadline misses. Fault injection via physical push buttons triggers EXTI interrupts, forcing task state changes to demonstrate real-time scheduler response under failure conditions. A UART diagnostic shell exposes runtime system state and accepts commands. Stack overflow detection traps misbehaving tasks before memory corruption occurs.
