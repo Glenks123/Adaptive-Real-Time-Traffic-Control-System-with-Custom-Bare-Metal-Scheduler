@@ -13,11 +13,13 @@ void init_tasks_stacks(void);
 __attribute__((naked)) void init_scheduler_stack(uint32_t sched_stack_start);
 uint32_t retrieve_psp_value(void);
 __attribute__((naked)) void switch_sp_to_psp(void);
+void save_psp_value(uint32_t current_psp_value);
 void update_next_task(void);
 __attribute__((naked)) void PendSV_Handler(void);
 
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
+uint32_t global_tick_count = 0;
 
 void init_tasks_stacks(void) {
 	user_tasks[0].psp_value = IDLE_STACK_START;
@@ -99,8 +101,32 @@ void save_psp_value(uint32_t current_psp_value) {
 
 void update_next_task(void) {
 	/*
-	 * Priority based decision handling to decide which is the next task to run
+	 * Priority based decision handling to decide which is the next task to run: Scans tasks with ready state,
+	 * out of which chooses the highest priority task to run. If two tasks have equal priority and  ready state, then
+	 * we look at last_run_tick, which tells us when last a task was scheduled (timestamp).
 	 */
+	int max_priority = -1;
+	int priority_idx = 0;
+	int last_run_count = 0xFFFFFFFF;
+
+	for (int i=0; i<N_TASKS; i++) {
+		if (user_tasks[i].current_state == TASK_READY_STATE && i != 0) {
+			if (user_tasks[i].priority > max_priority) {
+				max_priority = user_tasks[i].priority;
+				priority_idx = i;
+				last_run_count = user_tasks[i].last_run_tick;
+			} else if (user_tasks[i].priority == max_priority) {
+				if (user_tasks[i].last_run_tick < last_run_count) {
+					max_priority = user_tasks[i].priority;
+					priority_idx = i;
+					last_run_count = user_tasks[i].last_run_tick;
+				}
+			}
+		}
+	}
+
+	user_tasks[priority_idx].last_run_tick = global_tick_count;
+	current_task = priority_idx;
 }
 
 __attribute__((naked)) void PendSV_Handler(void) {
