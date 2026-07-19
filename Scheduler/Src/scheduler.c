@@ -129,6 +129,32 @@ void update_next_task(void) {
 	current_task = priority_idx;
 }
 
+void task_delay(uint32_t tick_count) {
+	/*
+	 * When this function is called, the task state is set to BLOCKED. For example, if we need to turn on an LED for 5000 ticks
+	 * followed by another LED, we call this function in between task_delay(5000). We unblock a task when block count == global count.
+	 * Therefore, global count acts as a reference reference point for when the blocked tasks' alarm has arrived
+	 *
+	 * ISSUE WITH CHANGING STATE FIRST FOLLOWED BY BLOCK COUNT:
+	 * If systick fires between the two writes, unblock_tasks() may evaluate this task
+	 * with BLOCKED state but block_count still 0, causing the task to be immediately
+	 * unblocked and the delay never honoured. Interrupts are disabled for the duration
+	 * of both writes to prevent this race condition. (A race condition is when the
+	 * correctness of the result depends on the timing of two concurrent operations.)
+	 *
+	 * --> we either change the order of operation or just add __disable_irq() and __enable_irq() around
+	 * for full protection
+	 */
+
+	//user_tasks[current_task].current_state = TASK_BLOCKED_STATE;
+	//user_tasks[current_task].block_count = tick_count + global_tick_count;
+
+	__disable_irq();
+	user_tasks[current_task].block_count = tick_count + global_tick_count;
+	user_tasks[current_task].current_state = TASK_BLOCKED_STATE;
+	__enable_irq();
+}
+
 __attribute__((naked)) void PendSV_Handler(void) {
 	/*
 	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run)
