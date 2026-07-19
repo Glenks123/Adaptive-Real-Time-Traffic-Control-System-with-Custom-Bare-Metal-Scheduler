@@ -47,3 +47,10 @@ typedef struct {
 } TCB_t;
 
 #endif
+
+
+/*
+	OTHER CONSTANTS
+*/
+#define XPSR_VAL 0x01000000
+#define EXC_RETURN_VAL 0xFFFFFFFD

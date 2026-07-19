@@ -54,7 +54,7 @@ void init_tasks_stacks(void) {
 
 		// Initializing XPSR with t-bit of 1 (24th bit) --> thumb2 state
 		pPSP--;
-		*pPSP = 0x01000000;
+		*pPSP = XPSR_VAL;
 
 		// PC initialized to each task handler
 		pPSP--;
@@ -62,7 +62,7 @@ void init_tasks_stacks(void) {
 
 		// LR set to EXC_RETURN value (returns CPU back to thread mode, and changes SP to PSP after context switch --> done by hardware)
 		pPSP--;
-		*pPSP = 0xFFFFFFFD;
+		*pPSP = EXC_RETURN_VAL;
 
 		// initializing registers R0-R12 to 0
 		for (int j=0; j<13; j++) {
