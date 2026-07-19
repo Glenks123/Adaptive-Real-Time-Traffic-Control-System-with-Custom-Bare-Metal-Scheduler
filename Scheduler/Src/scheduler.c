@@ -3,28 +3,32 @@
 #include "scheduler.h"
 
 
-void task0_idleTask_handler(void);
-void task1_interA_handler(void);
-void task2_interB_handler(void);
-void task3_watchdog_handler(void);
-void task4_uart_handler(void);
-
-void init_tasks_stacks(void);
-__attribute__((naked)) void init_scheduler_stack(uint32_t sched_stack_start);
 uint32_t retrieve_psp_value(void);
-__attribute__((naked)) void switch_sp_to_psp(void);
 void save_psp_value(uint32_t current_psp_value);
 void update_next_task(void);
-__attribute__((naked)) void PendSV_Handler(void);
-void task_delay(uint32_t tick_count);
 void unblock_tasks(void);
 void update_global_tick(void);
 void schedule(void);
 void SysTick_Handler(void);
+__attribute__((naked)) void PendSV_Handler(void);
+
 
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
 uint32_t global_tick_count = 0;
+
+
+void enable_processor_faults(void) {
+	/*
+	 * In ARM Cortex M4, HardFault is enabledd by default but Usage, MemManage and Bus fault is disabled by default (escalated to
+	 * HardFault as a result). Enabling them will allow for specificity wrt to debugging.
+	 */
+	uint32_t *pSHCSR = (uint32_t*) 0xE000ED24;
+
+	*pSHCSR |= (1 << 18); // enable usage fault
+	*pSHCSR |= (1 << 17); // enable bus fault
+	*pSHCSR |= (1 << 16); // enable mem manage fault
+}
 
 void init_tasks_stacks(void) {
 	/*
