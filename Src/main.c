@@ -17,13 +17,50 @@
  */
 
 #include <stdint.h>
+#include "../Scheduler/Inc/scheduler.h"
+#include "../Drivers/Custom/Inc/systick.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+void task0_idleTask_handler(void);
+void task1_interA_handler(void);
+void task2_interB_handler(void);
+void task3_watchdog_handler(void);
+void task4_uart_handler(void);
+
 int main(void)
 {
-    /* Loop forever */
-	for(;;);
+	enable_processor_faults();
+	init_tasks_stacks();
+	init_scheduler_stack(SCHED_STACK_START);
+	init_systick_timer();
+	switch_sp_to_psp();
+
+	while(1);
 }
+
+void task0_idleTask_handler(void) {
+	while(1);
+}
+
+void task1_interA_handler(void) {
+	while(1);
+}
+
+void task2_interB_handler(void) {
+	while(1);
+}
+
+void task3_watchdog_handler(void) {
+	while(1);
+}
+
+void task4_uart_handler(void) {
+	while(1);
+}
+
+
+
+
