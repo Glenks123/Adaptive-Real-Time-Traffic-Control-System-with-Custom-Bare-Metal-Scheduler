@@ -16,12 +16,20 @@ __attribute__((naked)) void switch_sp_to_psp(void);
 void save_psp_value(uint32_t current_psp_value);
 void update_next_task(void);
 __attribute__((naked)) void PendSV_Handler(void);
+void task_delay(uint32_t tick_count);
+void unblock_tasks(void);
+void update_global_tick(void);
+void schedule(void);
+void SysTick_Handler(void);
 
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
 uint32_t global_tick_count = 0;
 
 void init_tasks_stacks(void) {
+	/*
+	 * Pushes SF1 (xPSR, PC, LR, R12, R0-R3) and SF2 (R4-R11) to private stack of each task
+	 */
 	user_tasks[0].psp_value = IDLE_STACK_START;
 	user_tasks[1].psp_value = T1_STACK_START;
 	user_tasks[2].psp_value = T2_STACK_START;
@@ -52,7 +60,7 @@ void init_tasks_stacks(void) {
 		pPSP--;
 		*pPSP = (uint32_t) user_tasks[i].task_handler;
 
-		// LR set to EXC_RETURN value (returns CPU back to thread mode, and changes SP to PSP after context switch)
+		// LR set to EXC_RETURN value (returns CPU back to thread mode, and changes SP to PSP after context switch --> done by hardware)
 		pPSP--;
 		*pPSP = 0xFFFFFFFD;
 
@@ -129,6 +137,24 @@ void update_next_task(void) {
 	current_task = priority_idx;
 }
 
+__attribute__((naked)) void PendSV_Handler(void) {
+	/*
+	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run)
+	 */
+	__asm volatile("MRS R0, PSP"); // retrieving PSP of current task and storing in R0
+	__asm volatile("STMDB R0!, {R4-R11}"); // R0 holds the current PSP value
+	__asm volatile("PUSH {LR}");
+	__asm volatile("BL save_psp_value"); // current_psp_value receives R0 according to AAPCS. Saving PSP to global data section
+	//  software record keeping of PSP value
+
+	__asm volatile("BL update_next_task"); // decide the next task to run
+	__asm volatile("BL retrieve_psp_value"); // get PSP of next task
+	__asm volatile("LDMIA R0!, {R4-R11}"); // popping SF2 of next task from private stack
+	__asm volatile("MSR PSP, R0"); // hardware register update of PSP register
+	__asm volatile("POP {LR}");
+	__asm volatile("BX LR");
+}
+
 void task_delay(uint32_t tick_count) {
 	/*
 	 * When this function is called, the task state is set to BLOCKED. For example, if we need to turn on an LED for 5000 ticks
@@ -155,22 +181,61 @@ void task_delay(uint32_t tick_count) {
 	__enable_irq();
 }
 
-__attribute__((naked)) void PendSV_Handler(void) {
-	/*
-	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run)
-	 */
-	__asm volatile("MRS R0, PSP"); // retrieving PSP of current task and storing in R0
-	__asm volatile("STMDB R0!, {R4-R11}"); // R0 holds the current PSP value
-	__asm volatile("PUSH {LR}");
-	__asm volatile("BL save_psp_value"); // current_psp_value receives R0 according to AAPCS. Saving PSP to global data section
-	//  software record keeping of PSP value
-
-	__asm volatile("BL update_next_task"); // decide the next task to run
-	__asm volatile("BL retrieve_psp_value"); // get PSP of next task
-	__asm volatile("LDMIA R0!, {R4-R11}"); // popping SF2 of next task from private stack
-	__asm volatile("MSR PSP, R0"); // hardware register update of PSP register
-	__asm volatile("POP {LR}");
-	__asm volatile("BX LR");
+void unblock_tasks(void){
+	for (int i=0; i<N_TASKS; i++) {
+		if (user_tasks[i].current_state == TASK_BLOCKED_STATE) {
+			if (user_tasks[i].block_count == global_tick_count) {
+				user_tasks[i].current_state = TASK_READY_STATE;
+			}
+		}
+	}
 }
+
+void update_global_tick(void) {
+	global_tick_count++;
+}
+
+void schedule(void) {
+	/* Pends PendSV	exception --> toggling 28th bit of ICSR register*/
+	uint32_t *pICSR = (uint32_t*) 0xE000ED04;
+	*pICSR |= (1 << 28);
+}
+
+void SysTick_Handler(void) {
+	/*
+	 *	Update global tick counter, checks if any tasks need to be unblocked, then pends PendSV (schedule)
+	 */
+	update_global_tick();
+	unblock_tasks();
+	schedule();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
