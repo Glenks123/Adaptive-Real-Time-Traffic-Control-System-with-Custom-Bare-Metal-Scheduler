@@ -1,0 +1,13 @@
+../Scheduler/Src/scheduler.c:26:6:enable_processor_faults	1
+../Scheduler/Src/scheduler.c:38:6:init_tasks_stacks	3
+../Scheduler/Src/scheduler.c:86:29:init_scheduler_stack	1
+../Scheduler/Src/scheduler.c:94:10:retrieve_psp_value	1
+../Scheduler/Src/scheduler.c:101:29:switch_sp_to_psp	1
+../Scheduler/Src/scheduler.c:115:6:save_psp_value	1
+../Scheduler/Src/scheduler.c:119:6:update_next_task	7
+../Scheduler/Src/scheduler.c:149:29:PendSV_Handler	1
+../Scheduler/Src/scheduler.c:167:6:task_delay	1
+../Scheduler/Src/scheduler.c:194:6:unblock_tasks	4
+../Scheduler/Src/scheduler.c:204:6:update_global_tick	1
+../Scheduler/Src/scheduler.c:208:6:schedule	1
+../Scheduler/Src/scheduler.c:214:6:SysTick_Handler	1
