@@ -3,7 +3,7 @@
 
 void init_uart(void) {
 	/*
-	 *	This function enables the USART2 peripheral configured for UART
+	 *	This function enables the USART2 peripheral configured for UART transmission
 	 */
 
 	// Enable clock to APB1 and GPIOA peripherals
@@ -33,3 +33,29 @@ void init_uart(void) {
 	uint32_t *pUSART_CR1 = (uint32_t*) (USART2_BASE_ADDRESS + 0x0C);
 	*pUSART_CR1 |= ((1 << 13) | (1 << 3));
 }
+
+void uart_write_char(char c) {
+	/*
+	 * 1. Wait until TXE flag is set in SR
+	 * 2. Once set, write bit to DR
+	 * 3. Hardware handles the rest
+	 */
+	uint32_t *pUSART_SR = (uint32_t*) (USART2_BASE_ADDRESS + 0x00);
+	while (!((*pUSART_SR >> 7) & 1)); // keep waiting until TXE flag is set.
+	// ((*pUSART_SR >> 7) & 1 gets value of bit 7) i.e TXE
+	uint32_t *pUSART_DR = (uint32_t*) (USART2_BASE_ADDRESS + 0x04);
+	*pUSART_DR = c;
+}
+
+void uart_write_string(char str[]) {
+	char *ptr = str; // ptr points to str[0]
+	while (*ptr != '\0') { // *ptr --> dereferencing and getting actual value
+		uart_write_char(*ptr);
+		ptr++;
+	}
+}
+
+
+
+
+
