@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "systick.h"
+#include "../Inc/systick.h"
 
 void init_systick_timer(void) {
 	/*

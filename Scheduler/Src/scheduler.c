@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "scheduler.h"
+#include "../Inc/scheduler.h"
 
+void task0_idleTask_handler(void);
+void task1_interA_handler(void);
+void task2_interB_handler(void);
+void task3_watchdog_handler(void);
+void task4_uart_handler(void);
 
 uint32_t retrieve_psp_value(void);
 void save_psp_value(uint32_t current_psp_value);
@@ -172,17 +177,18 @@ void task_delay(uint32_t tick_count) {
 	 * of both writes to prevent this race condition. (A race condition is when the
 	 * correctness of the result depends on the timing of two concurrent operations.)
 	 *
-	 * --> we either change the order of operation or just add __disable_irq() and __enable_irq() around
+	 * --> we either change the order of operation or just add __disable_irq() (__asm volatile ("CPSID I");
+	 * ) and __enable_irq() (__asm volatile ("CPSIE I")) around
 	 * for full protection
 	 */
 
 	//user_tasks[current_task].current_state = TASK_BLOCKED_STATE;
 	//user_tasks[current_task].block_count = tick_count + global_tick_count;
 
-	__disable_irq();
+	__asm volatile ("CPSID I"); // __disable_irq();
 	user_tasks[current_task].block_count = tick_count + global_tick_count;
 	user_tasks[current_task].current_state = TASK_BLOCKED_STATE;
-	__enable_irq();
+	__asm volatile ("CPSIE I"); // __enable_irq();
 }
 
 void unblock_tasks(void){
