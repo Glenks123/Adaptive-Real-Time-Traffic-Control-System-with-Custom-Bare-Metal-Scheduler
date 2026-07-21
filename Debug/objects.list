@@ -1,4 +1,5 @@
 "./Drivers/Custom/Src/systick.o"
+"./Drivers/Custom/Src/uart.o"
 "./Scheduler/Src/scheduler.o"
 "./Src/main.o"
 "./Src/syscalls.o"

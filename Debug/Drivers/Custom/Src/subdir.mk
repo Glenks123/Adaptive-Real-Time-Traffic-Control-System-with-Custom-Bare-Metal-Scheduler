@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/Custom/Src/systick.c 
+../Drivers/Custom/Src/systick.c \
+../Drivers/Custom/Src/uart.c 
 
 OBJS += \
-./Drivers/Custom/Src/systick.o 
+./Drivers/Custom/Src/systick.o \
+./Drivers/Custom/Src/uart.o 
 
 C_DEPS += \
-./Drivers/Custom/Src/systick.d 
+./Drivers/Custom/Src/systick.d \
+./Drivers/Custom/Src/uart.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ Drivers/Custom/Src/%.o Drivers/Custom/Src/%.su Drivers/Custom/Src/%.cyclo: ../Dr
 clean: clean-Drivers-2f-Custom-2f-Src
 
 clean-Drivers-2f-Custom-2f-Src:
-	-$(RM) ./Drivers/Custom/Src/systick.cyclo ./Drivers/Custom/Src/systick.d ./Drivers/Custom/Src/systick.o ./Drivers/Custom/Src/systick.su
+	-$(RM) ./Drivers/Custom/Src/systick.cyclo ./Drivers/Custom/Src/systick.d ./Drivers/Custom/Src/systick.o ./Drivers/Custom/Src/systick.su ./Drivers/Custom/Src/uart.cyclo ./Drivers/Custom/Src/uart.d ./Drivers/Custom/Src/uart.o ./Drivers/Custom/Src/uart.su
 
 .PHONY: clean-Drivers-2f-Custom-2f-Src
 
