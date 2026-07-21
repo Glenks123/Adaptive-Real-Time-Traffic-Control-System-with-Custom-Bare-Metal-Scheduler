@@ -17,7 +17,6 @@ void schedule(void);
 void SysTick_Handler(void);
 __attribute__((naked)) void PendSV_Handler(void);
 
-
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
 uint32_t global_tick_count = 0;
@@ -219,33 +218,3 @@ void SysTick_Handler(void) {
 	unblock_tasks();
 	schedule();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
