@@ -9,6 +9,7 @@
 void init_uart(void);
 void uart_write_char(char c);
 void uart_write_string(char *str);
+void uart_write_int(int value);
 
 
 /*

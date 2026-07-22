@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "../Inc/uart.h"
 
 void init_uart(void) {
@@ -39,6 +40,7 @@ void uart_write_char(char c) {
 	 * 1. Wait until TXE flag is set in SR
 	 * 2. Once set, write bit to DR
 	 * 3. Hardware handles the rest
+	 *
 	 */
 	uint32_t *pUSART_SR = (uint32_t*) (USART2_BASE_ADDRESS + 0x00);
 	while (!((*pUSART_SR >> 7) & 1)); // keep waiting until TXE flag is set.
@@ -56,6 +58,10 @@ void uart_write_string(char str[]) {
 }
 
 
-
+void uart_write_int(int value) {
+	char buf[12];
+	sprintf(buf, "%lu", value);
+	uart_write_string(buf);
+}
 
 
