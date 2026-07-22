@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include "../Scheduler/Inc/scheduler.h"
 #include "../Drivers/Custom/Inc/systick.h"
+#include "../Drivers/Custom/Inc/uart.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -35,6 +36,7 @@ int main(void)
 	enable_processor_faults();
 	init_tasks_stacks();
 	init_scheduler_stack(SCHED_STACK_START);
+	init_uart();
 	init_systick_timer();
 	switch_sp_to_psp();
 
@@ -42,23 +44,48 @@ int main(void)
 }
 
 void task0_idleTask_handler(void) {
-	while(1);
+	while (1) {
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string("] Task 0 is running.\r\n");
+		task_delay(200);
+	}
 }
 
 void task1_interA_handler(void) {
-	while(1);
+	while (1) {
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string("] Task 1 is running.\r\n");
+		task_delay(1000);
+	}
 }
 
 void task2_interB_handler(void) {
-	while(1);
+	while (1) {
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string("] Task 2 is running.\r\n");
+		task_delay(1500);
+	}
 }
 
 void task3_watchdog_handler(void) {
-	while(1);
+	while (1) {
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string("] Task 3 is running.\r\n");
+		task_delay(500);
+	}
 }
 
 void task4_uart_handler(void) {
-	while(1);
+	while (1) {
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string("] Task 4 is running.\r\n");
+		task_delay(2000);
+	}
 }
 
 
