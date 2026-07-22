@@ -50,6 +50,12 @@ void init_tasks_stacks(void) {
 	user_tasks[3].current_state = TASK_READY_STATE;
 	user_tasks[4].current_state = TASK_READY_STATE;
 
+	user_tasks[0].priority = 0;
+	user_tasks[1].priority = 2;
+	user_tasks[2].priority = 2;
+	user_tasks[3].priority = 3;
+	user_tasks[4].priority = 1;
+
 	user_tasks[0].task_handler = task0_idleTask_handler;
 	user_tasks[1].task_handler = task1_interA_handler;
 	user_tasks[2].task_handler = task2_interB_handler;
@@ -217,4 +223,19 @@ void SysTick_Handler(void) {
 	update_global_tick();
 	unblock_tasks();
 	schedule();
+}
+
+void HardFault_Handler(void) {
+	printf("Exception : Hardfault\n");
+	while(1);
+}
+
+void MemManage_Handler(void) {
+	printf("Exception : MemManage\n");
+	while(1);
+}
+
+void BusFault_Handler(void) {
+	printf("Exception : BusFault\n");
+	while(1);
 }

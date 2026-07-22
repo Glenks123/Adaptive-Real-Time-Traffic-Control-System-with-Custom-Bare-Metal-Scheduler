@@ -63,6 +63,11 @@ typedef struct {
 #define XPSR_VAL 0x01000000
 #define EXC_RETURN_VAL 0xFFFFFFFD
 
+/*
+  	GLOBAL VARIABLES
+*/
+extern uint32_t global_tick_count;
+
 
 #endif
 
