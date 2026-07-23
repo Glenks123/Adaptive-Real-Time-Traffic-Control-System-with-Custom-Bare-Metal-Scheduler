@@ -44,46 +44,58 @@ int main(void)
 }
 
 void task0_idleTask_handler(void) {
+	// We disable IRQs during uart write, to disable garbled output (ensures no context
+	// switches take place until the full string is completely out)
 	while (1) {
+		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 0 is running.\r\n");
+		__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(200);
 	}
 }
 
 void task1_interA_handler(void) {
 	while (1) {
+		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 1 is running.\r\n");
+		__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(1000);
 	}
 }
 
 void task2_interB_handler(void) {
 	while (1) {
+		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 2 is running.\r\n");
+		__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(1500);
 	}
 }
 
 void task3_watchdog_handler(void) {
 	while (1) {
+		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 3 is running.\r\n");
+		__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(500);
 	}
 }
 
 void task4_uart_handler(void) {
 	while (1) {
+		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 4 is running.\r\n");
+		__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(2000);
 	}
 }
