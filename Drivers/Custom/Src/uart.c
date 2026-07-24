@@ -57,10 +57,15 @@ void uart_write_string(char str[]) {
 	}
 }
 
-
-void uart_write_int(int value) {
+void uart_write_int(uint32_t value) {
 	char buf[12];
 	sprintf(buf, "%lu", value);
+	uart_write_string(buf);
+}
+
+void uart_write_hex(uint32_t value) {
+	char buf[12];
+	sprintf(buf, "0x%08lX", value);
 	uart_write_string(buf);
 }
 
