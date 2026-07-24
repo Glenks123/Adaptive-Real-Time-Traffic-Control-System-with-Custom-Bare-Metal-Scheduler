@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../Inc/scheduler.h"
+#include "../Drivers/Custom/Inc/uart.h"
 
 void task0_idleTask_handler(void);
 void task1_interA_handler(void);
@@ -36,13 +37,20 @@ void enable_processor_faults(void) {
 
 void init_tasks_stacks(void) {
 	/*
-	 * Pushes SF1 (xPSR, PC, LR, R12, R0-R3) and SF2 (R4-R11) to private stack of each task
+	 * Initializes user_tasks tcd struct and pushes SF1 (xPSR, PC, LR, R12, R0-R3)
+	 *  and SF2 (R4-R11) to private stack of each task
 	 */
 	user_tasks[0].psp_value = IDLE_STACK_START;
 	user_tasks[1].psp_value = T1_STACK_START;
 	user_tasks[2].psp_value = T2_STACK_START;
 	user_tasks[3].psp_value = T3_STACK_START;
 	user_tasks[4].psp_value = T4_STACK_START;
+
+	user_tasks[0].stack_boundary = IDLE_STACK_START - SIZE_TASK_STACK;
+	user_tasks[1].stack_boundary = T1_STACK_START - SIZE_TASK_STACK;
+	user_tasks[2].stack_boundary = T2_STACK_START - SIZE_TASK_STACK;
+	user_tasks[3].stack_boundary = T3_STACK_START - SIZE_TASK_STACK;
+	user_tasks[4].stack_boundary = T4_STACK_START - SIZE_TASK_STACK;
 
 	user_tasks[0].current_state = TASK_READY_STATE;
 	user_tasks[1].current_state = TASK_READY_STATE;
@@ -151,13 +159,26 @@ void update_next_task(void) {
 	current_task = priority_idx;
 }
 
+void check_stack_overflow(uint32_t current_psp) {
+	if (current_psp < user_tasks[current_task].stack_boundary) {
+		uart_write_string("[STACK OVERFLOW] Task ");
+		uart_write_int(current_task);
+		uart_write_string(" | PSP: ");
+		uart_write_hex(current_psp);
+		uart_write_string(".\r\n");
+		while(1);
+	}
+}
+
 __attribute__((naked)) void PendSV_Handler(void) {
 	/*
 	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run)
 	 */
 	__asm volatile("MRS R0, PSP"); // retrieving PSP of current task and storing in R0
+	__asm volatile("PUSH {LR}"); // holds value of EXC_RETURN
+	__asm volatile("BL check_stack_overflow");
+	__asm volatile("MRS R0, PSP");
 	__asm volatile("STMDB R0!, {R4-R11}"); // R0 holds the current PSP value
-	__asm volatile("PUSH {LR}");
 	__asm volatile("BL save_psp_value"); // current_psp_value receives R0 according to AAPCS. Saving PSP to global data section
 	//  software record keeping of PSP value
 

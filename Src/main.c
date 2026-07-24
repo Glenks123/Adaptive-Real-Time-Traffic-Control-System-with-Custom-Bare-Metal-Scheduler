@@ -58,6 +58,9 @@ void task0_idleTask_handler(void) {
 
 void task1_interA_handler(void) {
 	while (1) {
+		//uint8_t STACK_OVERFLOW_TEST_ARRAY[1025]; // each element is 1 byte. Each task is 1KB
+		//STACK_OVERFLOW_TEST_ARRAY[0] = 1;
+
 		__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
