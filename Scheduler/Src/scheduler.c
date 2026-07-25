@@ -17,6 +17,7 @@ void update_global_tick(void);
 void schedule(void);
 void SysTick_Handler(void);
 __attribute__((naked)) void PendSV_Handler(void);
+void check_stack_overflow(uint32_t current_psp);
 
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
