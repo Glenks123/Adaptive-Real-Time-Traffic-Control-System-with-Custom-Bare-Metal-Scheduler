@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "../Inc/scheduler.h"
 #include "../Drivers/Custom/Inc/uart.h"
+#include "../App/Inc/intersection.h"
 
 void task0_idleTask_handler(void);
 void task1_interA_handler(void);

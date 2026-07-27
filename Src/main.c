@@ -20,6 +20,8 @@
 #include "../Scheduler/Inc/scheduler.h"
 #include "../Drivers/Custom/Inc/systick.h"
 #include "../Drivers/Custom/Inc/uart.h"
+#include "../Drivers/Custom/Inc/gpio.h"
+#include "../App/Inc/intersection.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -37,6 +39,7 @@ int main(void)
 	init_tasks_stacks();
 	init_scheduler_stack(SCHED_STACK_START);
 	init_uart();
+	init_gpio();
 	init_systick_timer();
 	switch_sp_to_psp();
 
@@ -56,6 +59,7 @@ void task0_idleTask_handler(void) {
 	}
 }
 
+/*
 void task1_interA_handler(void) {
 	while (1) {
 		//uint8_t STACK_OVERFLOW_TEST_ARRAY[1025]; // each element is 1 byte. Each task is 1KB
@@ -80,6 +84,7 @@ void task2_interB_handler(void) {
 		task_delay(1500);
 	}
 }
+*/
 
 void task3_watchdog_handler(void) {
 	while (1) {
