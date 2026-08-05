@@ -40,7 +40,6 @@ void task_delay(uint32_t tick_count);
 #define TASK_BLOCKED_STATE 0x01
 #define TASK_FAULT_STATE 0x02
 
-
 /*
 	DEFINING TASK CONTROL BLOCK
 */
@@ -51,8 +50,10 @@ typedef struct {
     uint8_t priority;           // Higher number = higher priority
     uint32_t stack_boundary;     // Lowest valid PSP address — overflow detection
     uint32_t run_count;          // How many times this task has been scheduled
-    uint32_t last_run_tick;      // Last tick this task ran — watchdog uses this
+    uint32_t last_scheduled_tick; // scheduler uses this
+    uint32_t last_run_tick;      // Last tick at which the task ran - watchdog uses this
     uint32_t missed_deadlines;   // Incremented by watchdog on deadline miss
+    uint32_t max_block_time;
     void (*task_handler)(void);
 } TCB_t;
 
@@ -67,7 +68,7 @@ typedef struct {
   	GLOBAL VARIABLES
 */
 extern uint32_t global_tick_count;
-
+extern TCB_t user_tasks[N_TASKS];
 
 #endif
 

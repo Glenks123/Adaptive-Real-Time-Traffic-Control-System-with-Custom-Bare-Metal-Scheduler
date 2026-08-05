@@ -66,6 +66,12 @@ void init_tasks_stacks(void) {
 	user_tasks[3].priority = 3;
 	user_tasks[4].priority = 1;
 
+	user_tasks[0].max_block_time = 200;
+	user_tasks[1].max_block_time = MAX_BLOCK_TIME;
+	user_tasks[2].max_block_time = MAX_BLOCK_TIME;
+	user_tasks[3].max_block_time = 500;
+	user_tasks[4].max_block_time = 2000;
+
 	user_tasks[0].task_handler = task0_idleTask_handler;
 	user_tasks[1].task_handler = task1_interA_handler;
 	user_tasks[2].task_handler = task2_interB_handler;
@@ -135,29 +141,29 @@ void update_next_task(void) {
 	/*
 	 * Priority based decision handling to decide which is the next task to run: Scans tasks with ready state,
 	 * out of which chooses the highest priority task to run. If two tasks have equal priority and  ready state, then
-	 * we look at last_run_tick, which tells us when last a task was scheduled (timestamp).
+	 * we look at last_scheduled_tick, which tells us when last a task was scheduled (timestamp).
 	 */
 	int max_priority = -1;
 	int priority_idx = 0;
-	int last_run_count = 0xFFFFFFFF;
+	int last_run_count = 0xFFFFFFFF; // used to keep track of the lowest last_scheduled_tick among equal-priority tasks
 
 	for (int i=0; i<N_TASKS; i++) {
 		if (user_tasks[i].current_state == TASK_READY_STATE && i != 0) {
 			if (user_tasks[i].priority > max_priority) {
 				max_priority = user_tasks[i].priority;
 				priority_idx = i;
-				last_run_count = user_tasks[i].last_run_tick;
+				last_run_count = user_tasks[i].last_scheduled_tick;
 			} else if (user_tasks[i].priority == max_priority) {
-				if (user_tasks[i].last_run_tick < last_run_count) {
+				if (user_tasks[i].last_scheduled_tick < last_run_count) {
 					max_priority = user_tasks[i].priority;
 					priority_idx = i;
-					last_run_count = user_tasks[i].last_run_tick;
+					last_run_count = user_tasks[i].last_scheduled_tick;
 				}
 			}
 		}
 	}
 
-	user_tasks[priority_idx].last_run_tick = global_tick_count;
+	user_tasks[priority_idx].last_scheduled_tick = global_tick_count;
 	current_task = priority_idx;
 }
 
@@ -174,7 +180,8 @@ void check_stack_overflow(uint32_t current_psp) {
 
 __attribute__((naked)) void PendSV_Handler(void) {
 	/*
-	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run)
+	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run).
+	 *	Only performed once during boot
 	 */
 	__asm volatile("MRS R0, PSP"); // retrieving PSP of current task and storing in R0
 	__asm volatile("PUSH {LR}"); // holds value of EXC_RETURN
