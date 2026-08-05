@@ -84,7 +84,7 @@ void task2_interB_handler(void) {
 		task_delay(1500);
 	}
 }
-*/
+
 
 void task3_watchdog_handler(void) {
 	while (1) {
@@ -96,6 +96,7 @@ void task3_watchdog_handler(void) {
 		task_delay(500);
 	}
 }
+*/
 
 void task4_uart_handler(void) {
 	while (1) {
