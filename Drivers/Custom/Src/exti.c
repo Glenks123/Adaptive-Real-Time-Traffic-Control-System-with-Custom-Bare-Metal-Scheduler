@@ -3,7 +3,7 @@
 #include "../Inc/exti.h"
 #include "../../../Core/Inc/registers.h"
 
-void exti_init(void) {
+void init_exti(void) {
 	// Enable clock to SYSCFG peripheral (hangs off APB2 - 14th bit)
 	uint32_t *pRCC_APB2ENR = (uint32_t*) (RCC_BASE_ADDRESS + 0x44);
 	*pRCC_APB2ENR |= (1 << 14);
@@ -26,10 +26,14 @@ void exti_init(void) {
 	*pEXTI_PR = (0x3);
 
 	// Configuring clock trigger mechanism to rising edge trigger:
-	// 				2. Unmasking the lines in EXTI_IMR (pending event is allowed through)
-	//				3. Selecting trigger edge to rising --> RTSR
+	// 				1. Unmasking the lines in EXTI_IMR (pending event is allowed through)
+	//				2. Selecting trigger edge to rising --> RTSR
 	uint32_t *pEXTI_IMR = (uint32_t*) (EXTI_BASE_ADDRESS + 0x00);
 	*pEXTI_IMR |= 0x3;
 	uint32_t *pEXTI_RTSR = (uint32_t*) (EXTI_BASE_ADDRESS + 0x08);
 	*pEXTI_RTSR |= 0x3;
+
+	// Configuring NVIC to enable interrupts for IRQ6 and IRQ7 lines (setting 6th and 7th bit on NVIC_ISER0)
+	uint32_t *pNVIC_ISER0 = (uint32_t*) (NVIC_BASE_ADDRESS + 0x00);
+	*pNVIC_ISER0 |= (1 << 6) | (1 << 7);
 }
