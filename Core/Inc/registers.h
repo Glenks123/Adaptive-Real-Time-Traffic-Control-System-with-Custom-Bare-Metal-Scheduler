@@ -4,5 +4,6 @@
 #include <stdint.h>
 
 #define RCC_BASE_ADDRESS 0x40023800U
+#define SYSCFG_BASE_ADDRESS 0x40013800
 
 #endif
