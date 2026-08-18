@@ -3,6 +3,7 @@
 #include "../../Drivers/Custom/Inc/gpio.h"
 #include "../../Scheduler/Inc/scheduler.h"
 #include "../../Drivers/Custom/Inc/uart.h"
+#include "../../Drivers/Custom/Inc/exti.h"
 
 volatile TrafficState intersection_a_state = RED;
 volatile TrafficState intersection_b_state = RED;
@@ -11,6 +12,15 @@ void check_task_deadline(uint8_t task_index);
 
 void task1_interA_handler(void) {
 	while (1) {
+		if (fault_injection_requested) {
+			__asm volatile("CPSID I");
+			uart_write_string("BUTTON FAULT INJECTION INITIAITED: TASK A FAULTED.\r\n");
+			__asm volatile("CPSIE I");
+			while (1) {
+				// trapping the task here --> not updating last_tick_count which eventually triggers watchdog handler
+			}
+		}
+
 		user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
 
 		intersection_a_state = RED;
@@ -21,16 +31,34 @@ void task1_interA_handler(void) {
 			user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
 		}
 		user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] A -> RED");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 
 		intersection_a_state = GREEN;
 		set_intersection_a(intersection_a_state);
 		task_delay(PHASE_GREEN_MS);
 		user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] A -> GREEN");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 
 		intersection_a_state = AMBER;
 		set_intersection_a(intersection_a_state);
 		task_delay(PHASE_AMBER_MS);
 		user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] A -> AMBER");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 	}
 }
 
@@ -46,16 +74,34 @@ void task2_interB_handler(void) {
 			user_tasks[TASK_INTER_B_INDEX].last_run_tick = global_tick_count;
 		}
 		user_tasks[TASK_INTER_B_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] B -> RED");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 
 		intersection_b_state = GREEN;
 		set_intersection_b(intersection_b_state);
 		task_delay(PHASE_GREEN_MS);
 		user_tasks[TASK_INTER_B_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] B -> GREEN");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 
 		intersection_b_state = AMBER;
 		set_intersection_b(intersection_b_state);
 		task_delay(PHASE_AMBER_MS);
 		user_tasks[TASK_INTER_B_INDEX].last_run_tick = global_tick_count;
+		__asm volatile("CPSID I");
+		uart_write_string("[TICK ");
+		uart_write_int(global_tick_count);
+		uart_write_string(" ] B -> AMBER");
+		uart_write_string("\r\n");
+		__asm volatile("CPSIE I");
 	}
 }
 
