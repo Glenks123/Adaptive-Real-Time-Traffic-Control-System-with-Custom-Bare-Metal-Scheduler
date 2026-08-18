@@ -5,4 +5,6 @@
 
 void init_exti(void);
 
+extern volatile uint8_t fault_injection_requested;
+
 #endif

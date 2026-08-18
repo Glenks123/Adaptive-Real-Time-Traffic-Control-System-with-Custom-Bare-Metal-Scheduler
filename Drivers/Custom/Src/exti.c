@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "../Inc/exti.h"
 #include "../../../Core/Inc/registers.h"
+#include "../../../Scheduler/Inc/scheduler.h"
 
 void init_exti(void) {
 	// Enable clock to SYSCFG peripheral (hangs off APB2 - 14th bit)
@@ -37,3 +38,28 @@ void init_exti(void) {
 	uint32_t *pNVIC_ISER0 = (uint32_t*) (NVIC_BASE_ADDRESS + 0x00);
 	*pNVIC_ISER0 |= (1 << 6) | (1 << 7);
 }
+
+void EXTI0_IRQHandler(void) {
+	/* 1. Clear EXTI_PR
+	 * 2. Debounce check
+	 * 3. Perform fault injection logic: Force Task A handler into an infinite loop --> last run tick
+	 * stops updating which invokes watchdog fault
+	 * */
+	static uint32_t last_fault_injection_tick = 0;
+	uint32_t *pEXTI_PR = (uint32_t*) (EXTI_BASE_ADDRESS + 0x14);
+
+	if (last_fault_injection - global_tick_count < threshold) {
+		last_fault_injection_tick = global_tick_count;
+		*pEXTI_PR = (0x1); // Clearing EXTI0 pending bit
+		fault_injection_requested = 1;
+	} else {
+		*pEXTI_PR = (0x1);
+	}
+}
+
+void EXTI1_IRQHandler(void) {
+	// pedestrian crossing button logic
+}
+
+
+
