@@ -4,6 +4,8 @@
 #include "../../../Core/Inc/registers.h"
 #include "../../../Scheduler/Inc/scheduler.h"
 
+volatile uint8_t fault_injection_requested = 0;
+
 void init_exti(void) {
 	// Enable clock to SYSCFG peripheral (hangs off APB2 - 14th bit)
 	uint32_t *pRCC_APB2ENR = (uint32_t*) (RCC_BASE_ADDRESS + 0x44);
@@ -48,17 +50,20 @@ void EXTI0_IRQHandler(void) {
 	static uint32_t last_fault_injection_tick = 0;
 	uint32_t *pEXTI_PR = (uint32_t*) (EXTI_BASE_ADDRESS + 0x14);
 
-	if (last_fault_injection - global_tick_count < threshold) {
-		last_fault_injection_tick = global_tick_count;
+	if (global_tick_count - last_fault_injection_tick < FAULT_DEBOUNCE_THRESHOLD_MS) {
+		// this is the bounce noise that we ignore, but still clear PR
 		*pEXTI_PR = (0x1); // Clearing EXTI0 pending bit
-		fault_injection_requested = 1;
 	} else {
+		// this is the real pass
+		last_fault_injection_tick = global_tick_count;
 		*pEXTI_PR = (0x1);
+		fault_injection_requested = 1;
 	}
 }
 
 void EXTI1_IRQHandler(void) {
 	// pedestrian crossing button logic
+
 }
 
 
