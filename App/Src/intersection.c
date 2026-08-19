@@ -14,8 +14,12 @@ void task1_interA_handler(void) {
 	while (1) {
 		if (fault_injection_requested) {
 			__asm volatile("CPSID I");
-			uart_write_string("BUTTON FAULT INJECTION INITIAITED: TASK A FAULTED.\r\n");
+			uart_write_string("[TICK ");
+			uart_write_int(global_tick_count);
+			uart_write_string(" ] BUTTON FAULT INJECTION DETECTED: FAULING TASK A INTERSECTION");
+			uart_write_string("\r\n");
 			__asm volatile("CPSIE I");
+
 			while (1) {
 				// trapping the task here --> not updating last_tick_count which eventually triggers watchdog handler
 			}
@@ -25,7 +29,23 @@ void task1_interA_handler(void) {
 
 		intersection_a_state = RED;
 		set_intersection_a(intersection_a_state);
+
 		task_delay(PHASE_RED_MS); // block task for 7 seconds, so scheudler runs other tasks
+
+		// block task for additional 3 seconds if pedestrian crossing flag set
+		if (pedestrian_crossing_requested) {
+			__asm volatile("CPSID I");
+			uart_write_string("[TICK ");
+			uart_write_int(global_tick_count);
+			uart_write_string(" ] PEDESTRIAN CROSSING REQUEST HONORED: RED EXTENDED");
+			uart_write_string("\r\n");
+			__asm volatile("CPSIE I");
+
+			user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
+			task_delay(3000);
+			pedestrian_crossing_requested = 0;
+		}
+
 		while(intersection_b_state != RED) {
 			task_delay(100); //  yield for 100ms until  interB is RED so interA can transition to green
 			user_tasks[TASK_INTER_A_INDEX].last_run_tick = global_tick_count;
