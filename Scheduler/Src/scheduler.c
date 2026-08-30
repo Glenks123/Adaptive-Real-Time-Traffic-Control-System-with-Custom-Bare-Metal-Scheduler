@@ -19,11 +19,18 @@ void schedule(void);
 void SysTick_Handler(void);
 __attribute__((naked)) void PendSV_Handler(void);
 void check_stack_overflow(uint32_t current_psp);
+void init_interrupt_priorities(void);
 
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
 uint32_t global_tick_count = 0;
 
+void init_interrupt_priorities(void) {
+	// Set priority level for pendsv to 15
+	uint32_t *pSHPR3 = (uint32_t*) (0xE000ED20);
+	*pSHPR3 &= ~(0xFUL << 20);
+	*pSHPR3 |= (0xFUL << 20); // UL --> unsigned long: prevents signed integer overflow and ensures 32 bit container --> defensive programming
+}
 
 void enable_processor_faults(void) {
 	/*

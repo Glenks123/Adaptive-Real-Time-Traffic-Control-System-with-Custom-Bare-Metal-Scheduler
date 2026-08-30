@@ -36,6 +36,7 @@ void task4_uart_handler(void);
 int main(void)
 {
 	enable_processor_faults();
+	init_interrupt_priorities();
 	init_tasks_stacks();
 	init_scheduler_stack(SCHED_STACK_START);
 	init_uart();
@@ -100,11 +101,15 @@ void task3_watchdog_handler(void) {
 
 void task4_uart_handler(void) {
 	while (1) {
-		__asm volatile ("CPSID I"); // __disable_irq();
+		//__asm volatile ("CPSID I"); // __disable_irq();
+		__asm volatile("MSR BASEPRI, %0" :: "r" (BASEPRI_THRESHOLD));
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
-		uart_write_string("] Task 4 is running.\r\n");
-		__asm volatile ("CPSIE I"); // __enable_irq();
+		uart_write_string("] Task 4 is running. RX count: ");
+		uart_write_int(rx_byte_count);
+		uart_write_string("\r\n");
+		__asm volatile("MSR BASEPRI, %0" :: "r" (0));
+		//__asm volatile ("CPSIE I"); // __enable_irq();
 		task_delay(2000);
 	}
 }

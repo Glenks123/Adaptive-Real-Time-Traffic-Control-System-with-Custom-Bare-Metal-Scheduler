@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "../Inc/uart.h"
+#include "../../../Core/Inc/registers.h"
+
+volatile uint32_t rx_byte_count;
 
 void init_uart(void) {
 	/*
@@ -30,9 +33,31 @@ void init_uart(void) {
 	uint32_t *pUSART_BRR = (uint32_t*) (USART2_BASE_ADDRESS + 0x08);
 	*pUSART_BRR = BRR_VALUE;
 
-	// Configuring CR1 to enable USART and transmission
+	// Configuring CR1 to enable USART, transmission,  receiving and RXNEIE for triggering interrupts for RX
 	uint32_t *pUSART_CR1 = (uint32_t*) (USART2_BASE_ADDRESS + 0x0C);
-	*pUSART_CR1 |= ((1 << 13) | (1 << 3));
+	*pUSART_CR1 |= ((1 << 13) | (1 << 3) | (1 << 2) | (1 << 5));
+
+	// Enabling interrupt at NVIC level for USART2 (IRQ 38)
+	uint32_t *pNVIC_ISER1 = (uint32_t*) (NVIC_BASE_ADDRESS + 0x4);
+	*pNVIC_ISER1 |= (1 << 6);
+
+	// Setting priority level of USART2 to 1
+	uint32_t *pNVIC_IPR9 = (uint32_t*) (NVIC_IPR_BASE_ADDRESS + (0x4 * 9));
+	*pNVIC_IPR9 &= ~(0xFUL << 20); // clear
+	*pNVIC_IPR9 |= (0x1UL << 20); // set
+}
+
+void USART2_IRQHandler(void) {
+	uint32_t RXNE_flag;
+	uint32_t data;
+
+	uint32_t *pUSART_SR = (uint32_t*) (USART2_BASE_ADDRESS + 0x00);
+	RXNE_flag = (*pUSART_SR >> 5) & 0x01; // reads RXNE value (5th bit)
+
+	uint32_t *pUSART_DR = (uint32_t*) (USART2_BASE_ADDRESS + 0x04);
+	data = (*pUSART_DR & 0xFF); // reads data value [8:0]
+
+	rx_byte_count++;
 }
 
 void uart_write_char(char c) {

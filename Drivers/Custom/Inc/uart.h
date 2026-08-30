@@ -12,12 +12,18 @@ void uart_write_string(char *str);
 void uart_write_int(uint32_t value);
 void uart_write_hex(uint32_t value);
 
+extern volatile uint32_t rx_byte_count;
+
 /*
 	OTHER CONSTANTS
 */
 #define RCC_BASE_ADDRESS 0x40023800U
 #define GPIOA_BASE_ADDRESS 0x40020000U
 #define USART2_BASE_ADDRESS 0x40004400U
+#define NVIC_IPR_BASE_ADDRESS 0xE000E400U
+
+// Implemented bits [7:4]. [3:0] are reserved
+#define BASEPRI_THRESHOLD (2 << 4) // block priorities >= 2 i.e let priorities < 2 through
 
 #define f_CK 16000000U
 #define BAUD_RATE 115200U

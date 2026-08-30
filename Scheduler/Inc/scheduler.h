@@ -11,6 +11,7 @@ void init_tasks_stacks(void);
 __attribute__((naked)) void init_scheduler_stack(uint32_t sched_stack_start);
 __attribute__((naked)) void switch_sp_to_psp(void);
 void task_delay(uint32_t tick_count);
+void init_interrupt_priorities(void);
 
 
 /*
