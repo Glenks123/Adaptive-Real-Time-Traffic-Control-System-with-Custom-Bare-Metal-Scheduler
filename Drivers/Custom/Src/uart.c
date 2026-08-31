@@ -3,7 +3,10 @@
 #include "../Inc/uart.h"
 #include "../../../Core/Inc/registers.h"
 
-volatile uint32_t rx_byte_count;
+volatile uint8_t rx_write_idx;
+volatile uint8_t rx_read_idx;
+volatile uint8_t rx_buffer[64];
+int16_t uart_read_byte(void);
 
 void init_uart(void) {
 	/*
@@ -57,7 +60,20 @@ void USART2_IRQHandler(void) {
 	uint32_t *pUSART_DR = (uint32_t*) (USART2_BASE_ADDRESS + 0x04);
 	data = (*pUSART_DR & 0xFF); // reads data value [8:0]
 
-	rx_byte_count++;
+	// rx_write_idx %= 64; // we want to keep track of the unread count which is easier using the raw values. Thus we use the inline expression
+	rx_buffer[rx_write_idx % 64] = data; // write to buffer
+
+	rx_write_idx++;
+}
+
+int16_t uart_read_byte(void) {
+	if (rx_write_idx != rx_read_idx) { // if there's a difference
+		// if USART2 ISR runs after selection, the next iteration will pick up the updated write value. read_idx is not affected
+		uint8_t byte = rx_buffer[rx_read_idx % 64];
+		rx_read_idx++;
+		return byte;
+	}
+	return -1;
 }
 
 void uart_write_char(char c) {

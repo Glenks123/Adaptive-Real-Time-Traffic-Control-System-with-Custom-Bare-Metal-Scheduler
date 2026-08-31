@@ -105,8 +105,13 @@ void task4_uart_handler(void) {
 		__asm volatile("MSR BASEPRI, %0" :: "r" (BASEPRI_THRESHOLD));
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
-		uart_write_string("] Task 4 is running. RX count: ");
-		uart_write_int(rx_byte_count);
+		uart_write_string("] Task 4 is running. RX read value: ");
+		int16_t rx_read_data = uart_read_byte();
+		if (rx_read_data != -1) {
+			uart_write_int((uint32_t) rx_read_data);
+		} else {
+			uart_write_string("no data");
+		}
 		uart_write_string("\r\n");
 		__asm volatile("MSR BASEPRI, %0" :: "r" (0));
 		//__asm volatile ("CPSIE I"); // __enable_irq();

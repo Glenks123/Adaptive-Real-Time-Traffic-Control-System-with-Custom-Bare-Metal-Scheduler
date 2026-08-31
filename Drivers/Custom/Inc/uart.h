@@ -12,9 +12,11 @@ void uart_write_string(char *str);
 void uart_write_int(uint32_t value);
 void uart_write_hex(uint32_t value);
 
-extern volatile uint32_t rx_byte_count;
+extern volatile uint8_t rx_write_idx;
+extern volatile uint8_t rx_buffer[64];
+extern int16_t uart_read_byte(void);
 
-/*
+/*s
 	OTHER CONSTANTS
 */
 #define RCC_BASE_ADDRESS 0x40023800U
