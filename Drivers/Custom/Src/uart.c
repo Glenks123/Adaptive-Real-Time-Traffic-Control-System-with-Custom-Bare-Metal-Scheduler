@@ -90,6 +90,14 @@ void uart_write_char(char c) {
 	*pUSART_DR = c;
 }
 
+/*
+void uart_write_keypress(uint32_t value) {
+	char buf[12];
+	char character = value;
+	sprintf(buf, "%c", character);
+	uart_write_string(buf);
+}*/
+
 void uart_write_string(char str[]) {
 	char *ptr = str; // ptr points to str[0]
 	while (*ptr != '\0') { // *ptr --> dereferencing and getting actual value

@@ -33,6 +33,9 @@ void task2_interB_handler(void);
 void task3_watchdog_handler(void);
 void task4_uart_handler(void);
 
+volatile uint8_t line_buffer[64];
+volatile uint32_t line_buffer_idx;
+
 int main(void)
 {
 	enable_processor_faults();
@@ -103,19 +106,48 @@ void task4_uart_handler(void) {
 	while (1) {
 		//__asm volatile ("CPSID I"); // __disable_irq();
 		__asm volatile("MSR BASEPRI, %0" :: "r" (BASEPRI_THRESHOLD));
+
+
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 4 is running. RX read value: ");
+		uart_write_string("\r\n");
+
 		int16_t rx_read_data = uart_read_byte();
+		char user_command[64];
+
 		if (rx_read_data != -1) {
-			uart_write_int((uint32_t) rx_read_data);
+			/*for (int i=0; i<64; i++) {
+				if (line_buffer[i] != -1) {
+					uart_write_keypress((uint32_t) line_buffer[i]);
+				}
+			}*/
+
+			// Upon pressing enter:
+			if (rx_read_data == '\r' || rx_read_data == '\n') { // char gets promoted to int, so valid check
+				for (int i=0; i<line_buffer_idx; i++) {
+					user_command[i] = line_buffer[i];
+				}
+				user_command[line_buffer_idx] = '\0';
+
+				uart_write_string("USER COMMAND: ");
+				uart_write_string(user_command);
+
+				line_buffer_idx = 0;
+			} else {
+				line_buffer[line_buffer_idx] = rx_read_data;
+				line_buffer_idx++;
+			}
+
 		} else {
 			uart_write_string("no data");
 		}
 		uart_write_string("\r\n");
+
 		__asm volatile("MSR BASEPRI, %0" :: "r" (0));
 		//__asm volatile ("CPSIE I"); // __enable_irq();
-		task_delay(2000);
+
+		task_delay(60); // tightened to correspond to one keystroke
 	}
 }
 
