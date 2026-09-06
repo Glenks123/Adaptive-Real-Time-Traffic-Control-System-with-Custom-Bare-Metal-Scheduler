@@ -24,6 +24,7 @@ void init_interrupt_priorities(void);
 TCB_t user_tasks[N_TASKS];
 uint32_t current_task = 0; // initialized to idle task as a safe default
 uint32_t global_tick_count = 0;
+uint32_t context_switch_counter = 0;
 
 void init_interrupt_priorities(void) {
 	// Set priority level for pendsv to 15
@@ -185,6 +186,14 @@ void check_stack_overflow(uint32_t current_psp) {
 	}
 }
 
+void update_context_switch_counter(void) {
+	context_switch_counter++;
+}
+
+void update_run_count(void) {
+	user_tasks[current_task].run_count++;
+}
+
 __attribute__((naked)) void PendSV_Handler(void) {
 	/*
 	 *	Performs context saving (saving SF2 of current task) and context retrieval (fetching SF2 of next task to run).
@@ -198,6 +207,8 @@ __attribute__((naked)) void PendSV_Handler(void) {
 	__asm volatile("BL save_psp_value"); // current_psp_value receives R0 according to AAPCS. Saving PSP to global data section
 	//  software record keeping of PSP value
 
+	__asm volatile("BL update_context_switch_counter");
+	__asm volatile("BL update_run_count");
 	__asm volatile("BL update_next_task"); // decide the next task to run
 	__asm volatile("BL retrieve_psp_value"); // get PSP of next task
 	__asm volatile("LDMIA R0!, {R4-R11}"); // popping SF2 of next task from private stack
@@ -260,6 +271,7 @@ void SysTick_Handler(void) {
 	update_global_tick();
 	unblock_tasks();
 	schedule();
+	context_switch_counter++;
 }
 
 void HardFault_Handler(void) {

@@ -17,6 +17,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "../Scheduler/Inc/scheduler.h"
 #include "../Drivers/Custom/Inc/systick.h"
 #include "../Drivers/Custom/Inc/uart.h"
@@ -54,11 +55,11 @@ void task0_idleTask_handler(void) {
 	// We disable IRQs during uart write, to disable garbled output (ensures no context
 	// switches take place until the full string is completely out)
 	while (1) {
-		__asm volatile ("CPSID I"); // __disable_irq();
+		/*__asm volatile ("CPSID I"); // __disable_irq();
 		uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
 		uart_write_string("] Task 0 is running.\r\n");
-		__asm volatile ("CPSIE I"); // __enable_irq();
+		__asm volatile ("CPSIE I"); // __enable_irq();*/
 		task_delay(200);
 	}
 }
@@ -107,42 +108,72 @@ void task4_uart_handler(void) {
 		//__asm volatile ("CPSID I"); // __disable_irq();
 		__asm volatile("MSR BASEPRI, %0" :: "r" (BASEPRI_THRESHOLD));
 
-
-		uart_write_string("[TICK ");
+		/*uart_write_string("[TICK ");
 		uart_write_int(global_tick_count);
-		uart_write_string("] Task 4 is running. RX read value: ");
-		uart_write_string("\r\n");
+		uart_write_string("] Task 4 is running");
+		uart_write_string("\r\n");*/
 
 		int16_t rx_read_data = uart_read_byte();
 		char user_command[64];
 
 		if (rx_read_data != -1) {
-			/*for (int i=0; i<64; i++) {
-				if (line_buffer[i] != -1) {
-					uart_write_keypress((uint32_t) line_buffer[i]);
-				}
-			}*/
-
-			// Upon pressing enter:
 			if (rx_read_data == '\r' || rx_read_data == '\n') { // char gets promoted to int, so valid check
 				for (int i=0; i<line_buffer_idx; i++) {
 					user_command[i] = line_buffer[i];
 				}
 				user_command[line_buffer_idx] = '\0';
 
-				uart_write_string("USER COMMAND: ");
-				uart_write_string(user_command);
+				//uart_write_string("USER COMMAND: ");
+				//uart_write_string(user_command);
+
+				if (strcmp(user_command, "show uptime") == 0) {
+					// print global_tick_count
+					uart_write_string("\r\nUptime ticks: ");
+					uart_write_int(global_tick_count);
+				} else if (strcmp(user_command, "show scheduler") == 0) {
+					uart_write_string("\r\nCurrent Task: ");
+					uart_write_int(current_task);
+					uart_write_string("\r\nRun Count: ");
+					uart_write_int(user_tasks[current_task].run_count);
+					uart_write_string("\r\nContext Switch Counter: ");
+					uart_write_int(context_switch_counter);
+				} else if (strcmp(user_command, "show tasks") == 0) {
+					for (int i=0; i<N_TASKS; i++) {
+						uart_write_string("\r\nTask ");
+						uart_write_int(i);
+						uart_write_string(": \r\nState: ");
+						if (user_tasks[i].current_state == 0) {
+							uart_write_string("READY");
+						} else if (user_tasks[i].current_state == 1) {
+							uart_write_string("BLOCKED");
+						} else if (user_tasks[i].current_state == 2) {
+							uart_write_string("FAULT");
+						}
+						uart_write_string("\r\nPriority: ");
+						uart_write_int(user_tasks[i].priority);
+						uart_write_string("\r\nRun Count: ");
+						uart_write_int(user_tasks[i].run_count);
+						uart_write_string("\r\nMissed Deadlines: ");
+						uart_write_int(user_tasks[i].missed_deadlines);
+					}
+				} else if (strcmp(user_command, "set timing") == 0) {
+					uart_write_string("to implement");
+				} else {
+					uart_write_string("UNKNOWN COMMAND");
+				}
 
 				line_buffer_idx = 0;
+				uart_write_string("\r\n");
 			} else {
 				line_buffer[line_buffer_idx] = rx_read_data;
 				line_buffer_idx++;
 			}
-
-		} else {
-			uart_write_string("no data");
 		}
-		uart_write_string("\r\n");
+		/*else {
+			uart_write_string("NO DATA");
+		}*/
+		//uart_write_string("\r\n");
+
 
 		__asm volatile("MSR BASEPRI, %0" :: "r" (0));
 		//__asm volatile ("CPSIE I"); // __enable_irq();

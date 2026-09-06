@@ -70,6 +70,8 @@ typedef struct {
 */
 extern uint32_t global_tick_count;
 extern TCB_t user_tasks[N_TASKS];
+extern uint32_t context_switch_counter;
+extern uint32_t current_task;
 
 #endif
 
