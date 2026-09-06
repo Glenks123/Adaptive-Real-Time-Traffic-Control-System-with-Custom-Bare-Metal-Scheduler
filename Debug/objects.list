@@ -1,7 +1,0 @@
-"./Drivers/Custom/Src/systick.o"
-"./Drivers/Custom/Src/uart.o"
-"./Scheduler/Src/scheduler.o"
-"./Src/main.o"
-"./Src/syscalls.o"
-"./Src/sysmem.o"
-"./Startup/startup_stm32f407vgtx.o"
