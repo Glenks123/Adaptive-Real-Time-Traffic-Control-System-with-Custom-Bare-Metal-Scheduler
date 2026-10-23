@@ -1,4 +1,4 @@
-# Bare-Metal Preemptive Scheduler on STM32F407
+# Bare-Metal Traffic Control System on STM32F407
 
 A priority-based preemptive task scheduler written from scratch for the STM32F407ZGT6, running a dual-intersection traffic light controller as its workload.
 
