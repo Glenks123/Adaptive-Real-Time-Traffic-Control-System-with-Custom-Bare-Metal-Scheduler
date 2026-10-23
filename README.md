@@ -38,10 +38,6 @@ STM32F407ZGT6 board, 6 LEDs, 2 buttons (10 kΩ pull-downs), 3.3 V USB-UART adapt
 | `show scheduler` | Current task, tick count, context switches |
 | `show tasks` | State, priority, run count, missed deadlines |
 
-## Build
-
-STM32CubeIDE, plain C project. Register definitions live in `Core/Inc/registers.h`. Flash over ST-LINK and open a serial terminal on the UART adapter.
-
 ## References
 
 RM0090 · Cortex-M4 Generic User Guide · AAPCS
